@@ -29,7 +29,8 @@ for str in ['Linux', 'Darwin']:
 #Remove numpy since Blender already ships with it
 #Remove bin to avoid AVs false positives
 for e in os.listdir(malt_dependencies_path):
-    if e.startswith('numpy') or e == 'bin':
+    # if e.startswith('numpy') or e == 'bin':
+    if e == 'bin':
         shutil.rmtree(os.path.join(malt_dependencies_path, e))
 
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2020 BlenderNPR and contributors. MIT license. 
+# Copyright (c) 2020 BlenderNPR and contributors. MIT license.
 
 import ctypes, logging as log, io
 from Bridge.ipc import SharedBuffer
@@ -22,7 +22,7 @@ class IOCapture(io.StringIO):
         self.parent = parent
         self.log_path = log_path
         self.log_level = log_level
-    
+
     def write(self, s):
         self.parent.write(s)
         log.log(self.log_level, s)
@@ -42,9 +42,10 @@ class Bridge(object):
             sys.stdout = IOCapture(sys.stdout, log_path, log.INFO)
             sys.stderr = IOCapture(sys.stderr, log_path, log.ERROR)
             log.info('SETUP IOCapture')
-        
+
         import multiprocessing, random, string
         mp = multiprocessing.get_context('spawn')
+        mp.set_executable('../Malt/.Dependencies-39/python-gpu-39.exe')
 
         self.viewport_bit_depth = viewport_bit_depth
 
@@ -67,7 +68,7 @@ class Bridge(object):
         listeners = {}
         bridge_to_malt = {}
         malt_to_bridge = {}
-        
+
         import multiprocessing.connection as connection
         def add_connection(name):
             address = ('localhost', 0)
@@ -85,21 +86,21 @@ class Bridge(object):
 
         for name, listener in listeners.items():
             bridge_to_malt[name] = listener.accept()
-        
+
         self.connections = bridge_to_malt
 
         self.parameters, self.graphs, self.render_outputs = self.connections['PARAMS'].recv()
         self.lost_connection = False
 
-    
+
     def __del__(self):
         if self.process:
             self.process.terminate()
-        
-    
+
+
     def get_parameters(self):
         return self.parameters
-    
+
     @bridge_method
     def get_stats(self):
         if 'STATS' in self.shared_dict and self.shared_dict['STATS']:
@@ -131,7 +132,7 @@ class Bridge(object):
                 results[material.path] = material
                 received.append(material.path)
         return results
-    
+
     @bridge_method
     def receive_async_compilation_materials(self):
         results = {}
@@ -139,12 +140,12 @@ class Bridge(object):
             material = self.connections['MATERIAL'].recv()
             results[material.path] = material
         return results
-    
+
     @bridge_method
     def reflect_source_libraries(self, paths):
         self.connections['SHADER REFLECTION'].send({'paths': paths})
         return self.connections['SHADER REFLECTION'].recv()
-    
+
     @bridge_method
     def get_shared_buffer(self, ctype, size):
         from . import ipc
@@ -157,13 +158,13 @@ class Bridge(object):
                 if buffer._buffer.size >= requested_size:
                     if reuse_buffer is None or buffer._buffer.size < reuse_buffer._buffer.size:
                         reuse_buffer = buffer
-        
+
         if reuse_buffer is None:
             min_size = 1024*1024
             new_size = max(requested_size * 2, min_size)
             reuse_buffer = ipc.SharedBuffer(ctypes.c_byte, new_size)
             self.shared_buffers.append(reuse_buffer)
-        
+
         if reuse_buffer:
             ctypes.c_bool.from_address(reuse_buffer._release_flag.data).value = False
             reuse_buffer._ctype = ctype
@@ -176,7 +177,7 @@ class Bridge(object):
             'name': name,
             'data': mesh_data
         })
-    
+
     @bridge_method
     def load_texture(self, name, buffer, resolution, channels, sRGB):
         self.connections['TEXTURE'].send({
@@ -234,7 +235,7 @@ class Bridge(object):
                 if time.perf_counter() - start > 1:
                     #But don't stall Blender forever
                     return
-                
+
         self.shared_dict[(viewport_id, 'FINISHED')] = None
         self.connections['RENDER'].send({
             'viewport_id': viewport_id,
@@ -251,14 +252,12 @@ class Bridge(object):
         finished = False
         if (viewport_id, 'FINISHED') in self.shared_dict:
             finished = self.shared_dict[(viewport_id, 'FINISHED')] == True
-        
+
         read_resolution = None
         if (viewport_id, 'READ_RESOLUTION') in self.shared_dict:
             read_resolution = self.shared_dict[viewport_id, 'READ_RESOLUTION']
-        
+
         if viewport_id in self.render_buffers.keys():
             return self.render_buffers[viewport_id], finished, read_resolution
         else:
             return None, finished, read_resolution
-
-

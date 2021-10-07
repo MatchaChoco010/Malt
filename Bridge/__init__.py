@@ -1,4 +1,4 @@
-# Copyright (c) 2020 BlenderNPR and contributors. MIT license. 
+# Copyright (c) 2020 BlenderNPR and contributors. MIT license.
 
 def reload():
     import importlib
@@ -8,6 +8,9 @@ def reload():
 
 def start_server(pipeline_path, viewport_bit_depth, connection_addresses, shared_dic, lock, log_path, debug_mode, renderdoc_path):
     import os, sys
+
+    sys.path.append('./.Dependencies-39')
+
     # Trying to change process prioriy in Linux seems to hang Malt for some users
     if sys.platform == 'win32':
         import psutil
