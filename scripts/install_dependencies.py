@@ -6,7 +6,7 @@ malt_folder = os.path.join(current_dir, '..', 'Malt')
 
 py_version = str(sys.version_info[0])+str(sys.version_info[1])
 malt_dependencies_path = os.path.join(malt_folder, '.Dependencies-{}'.format(py_version))
-dependencies = ['glfw', 'PyOpenGL', 'PyOpenGL_accelerate', 'Pyrr', 'psutil']
+dependencies = ['numpy', 'glfw', 'PyOpenGL', 'PyOpenGL_accelerate', 'Pyrr', 'psutil']
 for dependency in dependencies:
     try:
         subprocess.check_call([sys.executable, '-m', 'pip', 'install', dependency, '--target', malt_dependencies_path])
@@ -17,7 +17,7 @@ for dependency in dependencies:
 
 
 from distutils.dir_util import copy_tree
-copy_tree(os.path.join(current_dir, 'PatchDependencies'), malt_dependencies_path) 
+copy_tree(os.path.join(current_dir, 'PatchDependencies'), malt_dependencies_path)
 
 #make sure mcpp has executable permissions
 for str in ['Linux', 'Darwin']:
@@ -32,4 +32,3 @@ for e in os.listdir(malt_dependencies_path):
 
 
 #subprocess.check_call([sys.executable, os.path.join(current_dir, 'get_glslang.py')])
-
