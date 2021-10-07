@@ -2,58 +2,59 @@ name: BLENDERMALT_PACKAGE_AND_RELEASE
 
 on:
   push:
+  workflow_dispatch:
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-    - uses: nelonoel/branch-name@v1.0.1
-    
-    - name: Rollback Release
-      uses: author/action-rollback@stable
-      continue-on-error: true
-      with:
-        tag: ${{ env.BRANCH_NAME }}-latest
-        delete_orphan_tag: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - uses: nelonoel/branch-name@v1.0.1
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ env.BRANCH_NAME }}-latest
-        release_name: ${{ env.BRANCH_NAME }}
-        draft: false
-        prerelease: ${{ env.BRANCH_NAME != 'Release' }}
-        body_path: SPONSORS.md
-    
-    - uses: actions/checkout@v2
-      
-    - name: Zip Shader Examples
-      shell: python
-      run: |
-        import shutil
-        shutil.make_archive('Shader Examples', 'zip', 'Shader Examples')
-    
-    - name: Release Shader Examples
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/Shader Examples.zip
-        asset_name: Shader-Examples.zip
-        asset_content_type: application/zip
-    
+      - name: Rollback Release
+        uses: author/action-rollback@stable
+        continue-on-error: true
+        with:
+          tag: ${{ env.BRANCH_NAME }}-latest
+          delete_orphan_tag: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.BRANCH_NAME }}-latest
+          release_name: ${{ env.BRANCH_NAME }}
+          draft: false
+          prerelease: ${{ env.BRANCH_NAME != 'Release' }}
+          body_path: SPONSORS.md
+
+      - uses: actions/checkout@v2
+
+      - name: Zip Shader Examples
+        shell: python
+        run: |
+          import shutil
+          shutil.make_archive('Shader Examples', 'zip', 'Shader Examples')
+
+      - name: Release Shader Examples
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/Shader Examples.zip
+          asset_name: Shader-Examples.zip
+          asset_content_type: application/zip
+
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url}}  
-  
+      upload_url: ${{ steps.create_release.outputs.upload_url}}
+
   package-blender:
     needs: [release]
     runs-on: ${{ matrix.os }}
@@ -63,43 +64,42 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.7'
-    
-    - name: install 3.7 dependencies
-      run: python install_dependencies.py
-      working-directory: ${{ github.workspace }}/scripts
-    
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
-    
-    - name: setup_blender_addon.py
-      run: python setup_blender_addon.py --copy-modules
-      working-directory: ${{ github.workspace }}/scripts
-    
-    - name: Zip Addon
-      shell: python
-      run: |
-        import shutil
-        shutil.make_archive('BlenderMalt', 'zip', '.', 'BlenderMalt')
-    
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: BlenderMalt-${{ runner.os }}
-        path: ${{ github.workspace }}/BlenderMalt.zip
-    
-    - name: Release Addon
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/BlenderMalt.zip
-        asset_name: BlenderMalt-${{ runner.os }}.zip
-        asset_content_type: application/zip
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
 
+      - name: install 3.7 dependencies
+        run: python install_dependencies.py
+        working-directory: ${{ github.workspace }}/scripts
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: setup_blender_addon.py
+        run: python setup_blender_addon.py --copy-modules
+        working-directory: ${{ github.workspace }}/scripts
+
+      - name: Zip Addon
+        shell: python
+        run: |
+          import shutil
+          shutil.make_archive('BlenderMalt', 'zip', '.', 'BlenderMalt')
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: BlenderMalt-${{ runner.os }}
+          path: ${{ github.workspace }}/BlenderMalt.zip
+
+      - name: Release Addon
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/BlenderMalt.zip
+          asset_name: BlenderMalt-${{ runner.os }}.zip
+          asset_content_type: application/zip
