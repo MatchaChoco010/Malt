@@ -8,15 +8,6 @@ def reload():
 
 def start_server(pipeline_path, viewport_bit_depth, connection_addresses, shared_dic, lock, log_path, debug_mode, renderdoc_path):
     import os, sys
-
-    new_sys_path = []
-    for path in sys.path:
-        if os.path.dirname(path) == 'lib' or os.path.dirname(path) == 'DLLs':
-            new_sys_path.append(path)
-
-    sys.path[:0] = new_sys_path
-    sys.path.append('./.Dependencies-39')
-
     # Trying to change process prioriy in Linux seems to hang Malt for some users
     if sys.platform == 'win32':
         import psutil

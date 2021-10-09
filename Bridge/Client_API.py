@@ -45,7 +45,7 @@ class Bridge(object):
 
         import multiprocessing, random, string
         mp = multiprocessing.get_context('spawn')
-        mp.set_executable('../Malt/.Dependencies-39/python-gpu-39.exe')
+        mp.set_executable(os.path.join(os.path.dirname(__file__), '../Malt/.Dependencies-39/Scripts/python.exe'))
 
         self.viewport_bit_depth = viewport_bit_depth
 
